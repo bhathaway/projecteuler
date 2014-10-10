@@ -14,6 +14,11 @@
 -- This might help when considering the maximal sum values. The sum of five odds will be odd, so we could
 -- use that to cut the space in half.
 
+
+
+import Data.List
+import Data.Set
+
 primeHelper :: Integer -> Integer -> Bool
 primeHelper number current_divisor
     | current_divisor * current_divisor <= number =
@@ -30,3 +35,60 @@ isConcatPrimePair :: Integer -> Integer -> Bool
 isConcatPrimePair n1 n2 =
     let concatNum x y = (read $ concat [show x, show y]) in
         (prime $ concatNum n1 n2) && (prime $ concatNum n2 n1)
+
+-- If I'm right, we won't actually even need this function.
+isConcatPrimeSet :: [ Integer ] -> Bool
+isConcatPrimeSet x =
+    let isConcatPrimeOrderedPair (a, b) = isConcatPrimePair a b in
+        all isConcatPrimeOrderedPair [(i, k) | i <- x, k <- x, i < k]
+
+primePairsLteN :: Integer -> [ ( Integer, Integer)  ]
+primePairsLteN x =
+    [(i, k) | i <- [3,5 .. x], k <- [3,5 .. x], i < k, prime i, prime k, isConcatPrimePair i k]
+
+-- Through experimentation, I've managed to conclude that this problem is equivalent to
+-- the maxmimal clique problem, an NP-complete problem. I did, however, find a good formulation
+-- of an algorithm to solve it, which I will translate here.
+
+type Vertex = Integer
+
+class Graph g where
+    vertices    :: g -> [ Vertex ]
+    connected   :: g -> Vertex -> Vertex -> Bool
+
+data PrimePairGraph = PrimePairGraph { vertex_list :: [ Vertex ], edges :: Set (Vertex, Vertex) }
+
+instance Graph PrimePairGraph where
+    vertices g      = vertex_list g
+    connected g a b = member (a, b) (edges g)
+
+type Clique = [ Vertex ]
+biggestCliques :: Graph g => g -> [ Clique ]
+biggestCliques g = bk [] (vertices g) []  -- initial state
+    where
+        bk :: Clique -> [ Vertex ] -> [ Vertex ] -> [ Clique ]
+        bk compsub cand excl =
+            if Data.List.null cand && Data.List.null excl then [compsub]
+                else loop cand excl
+            where
+                loop :: [ Vertex ] -> [ Vertex ] -> [ Clique ]
+                loop [] _ = []
+                loop (v : cand') excl =
+                    bk (v:compsub) (cand' `res` v) (excl `res` v) ++ loop cand' (v : excl)
+        res :: [ Vertex ] -> Vertex -> [ Vertex ]
+        res vs v = Data.List.filter (connected g v ) vs
+
+createPrimePairGraph :: Integer -> PrimePairGraph
+createPrimePairGraph n = PrimePairGraph (toList v) (fromList e)
+    where e = primePairsLteN n
+          v = fromList (flatten e)
+            where flatten :: [ ( Vertex, Vertex) ] -> [ Vertex ]
+                  flatten [] = []
+                  flatten ((i, j) : y) = [i, j] ++ (flatten y)
+
+firstFourClique = find (\x -> prime x &&
+  any (\clique -> length clique >= 4) (biggestCliques (createPrimePairGraph x))) [ 2 .. ]
+
+firstFiveClique = find (\x -> prime x &&
+  any (\clique -> length clique >= 5) (biggestCliques (createPrimePairGraph x))) [ 2 .. ]
+
