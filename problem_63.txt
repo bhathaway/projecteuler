@@ -1,0 +1,3 @@
+I solved this one by hand. One only needs to look at x**n for each x, and increment n starting from one. As soon as
+the digit count is the same as the previous iteration, you stop and go to the next x. The maximum x is 9. This is
+because any power of ten will have more digits than the power.
