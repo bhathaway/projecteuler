@@ -1,22 +1,5 @@
 import math
-
-def is_prime(n):
-    if n < 2:
-        return False
-
-    d = 2
-    r = n / d
-    while r >= d:
-        if r * d == n:
-            return False
-        else:
-            d += 1
-            r = n / d
-
-    return True
-
-def is_composite(n):
-    return not is_prime(n)
+from prime import *
 
 def is_twice_square_plus_prime(n):
     for i in range(2, n):
