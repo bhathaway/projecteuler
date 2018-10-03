@@ -1,23 +1,10 @@
+from prime import is_prime
+
 # Find three numbers in arithmetic sequence that are 4 digits, prime, and permutations of each other.
 # Start at 1000. Now, theoretically, there should only be up to 4! = 24 permutations of this, which seems
 # much easier to process, actually. So, we could find all permutations that are prime, first. Obviously,
 # the number of prime permutations must be at least 3. Greater than 3 complicates the situation. I'm thinking
 # that merely printing them sorted would be a good start.
-
-def is_prime(n):
-    if n < 2:
-        return False
-
-    d = 2
-    r = n / d
-    while r >= d:
-        if r * d == n:
-            return False
-        else:
-            d += 1
-            r = n / d
-
-    return True
 
 def perm_helper(string, l):
     if len(l) == 0:
