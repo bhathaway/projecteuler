@@ -1,15 +1,4 @@
-
-def prime_factors(n):
-    factors = []
-    d = 2
-    while n != 1:
-        if n % d != 0:
-            d = d + 1
-        else:
-            factors.append(d)
-            n = n / d
-
-    return factors
+from prime import prime_factors
 
 def cycle(i):
     factors = prime_factors(i)
