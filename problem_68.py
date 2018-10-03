@@ -83,6 +83,12 @@ class PolygonRing:
             s += "{}{}{}".format(t[0], t[1], t[2])
         return int(s)
 
+    def lowestForm(self):
+        s = self._outer_ring.index(min(self._outer_ring))
+        o = self._outer_ring
+        i = self._inner_ring
+        return PolygonRing(o[s:]+o[0:s], i[s:]+i[0:s])
+
     def __repr__(self):
         return self.__str__()
 
@@ -98,4 +104,94 @@ def getMagicTriples(max_number):
     for n in range(6, max_number*2 + 1):
         result[n] = list(triplesWithSum(n, max_number))
     return result
+
+# I have a lot of groundwork set up now. I should decide my basic strategy
+# for generating magic ngons. The idea is to iterate through the possible triples
+# as starting points. An initial difficulty is that there are six arrangements
+# of the triples. Assuming a configuration has been chosen, the next step is to
+# proceed clockwise, realizing that the middle value for the next triple has
+# been chosen. This has a couple benefits. One, we can eliminate all triples
+# that do not have this number, and additionally, there are now only two configurations
+# that the remaining triples can have. It's not actually that bad of a search space.
+# I also need to remember that what will further constrain the space is that
+# the other numbers besides the middle cannot have been seen previously.
+
+# One particular question is that, since these are rings, how do I avoid
+# over-solving the space? Maybe there's a way to take advantage of the
+# symmetry somehow. Let me just try it out on the 3-gon ring and see if I
+# can make it work, even if it is over-solved.
+
+def backsolve(N, current_list, remaining):
+    assert(len(current_list) <= N)
+
+    if len(current_list) == N:
+        outer_ring = []
+        inner_ring = []
+        for triple in current_list:
+            outer_ring.append(triple[0])
+            inner_ring.append(triple[1])
+
+        try:
+            p = PolygonRing(outer_ring, inner_ring)
+            if p.isMagic():
+                yield p
+            raise StopIteration
+        except AssertionError:
+            raise StopIteration
+
+    if remaining == []:
+        raise StopIteration
+
+    mid_element = current_list[-1][2]
+    candidates = []
+    for r in remaining:
+        if mid_element in r:
+            candidates.append(r)
+
+    for i in xrange(len(candidates)):
+        c = candidates[i]
+        r_idx = remaining.index(c)
+        assert(mid_element in c)
+        idx = c.index(mid_element)
+        right_idx = (idx + 1) % 3
+        left_idx = (idx + 2) % 3
+        candidate1 = [[c[left_idx], c[idx], c[right_idx]]]
+        candidate2 = [[c[right_idx], c[idx], c[left_idx]]]
+
+        for soln in backsolve(N, current_list + candidate1, remaining[0:r_idx] + remaining[r_idx+1:]):
+            yield soln
+        for soln in backsolve(N, current_list + candidate2, remaining[0:r_idx] + remaining[r_idx+1:]):
+            yield soln
+
+def magicNgon(N):
+    max_number = 2 * N
+    sum_to_triples = getMagicTriples(max_number)
+    for s in sum_to_triples:
+        triples = sum_to_triples[s]
+        if len(triples) < N:
+            continue
+        for i in xrange(len(triples)):
+            t = triples[i]
+            for soln in backsolve(N, [[t[0], t[1], t[2]]], triples[0:i] + triples[i+1:]):
+                yield soln
+            for soln in backsolve(N, [[t[1], t[2], t[0]]], triples[0:i] + triples[i+1:]):
+                yield soln
+            for soln in backsolve(N, [[t[2], t[0], t[1]]], triples[0:i] + triples[i+1:]):
+                yield soln
+            for soln in backsolve(N, [[t[1], t[0], t[2]]], triples[0:i] + triples[i+1:]):
+                yield soln
+            for soln in backsolve(N, [[t[1], t[2], t[0]]], triples[0:i] + triples[i+1:]):
+                yield soln
+            for soln in backsolve(N, [[t[2], t[1], t[0]]], triples[0:i] + triples[i+1:]):
+                yield soln
+
+solutions = []
+for m in magicNgon(5):
+    n = m.lowestForm().getNumber()
+    if n not in solutions:
+        solutions.append(n)
+
+solutions.sort()
+for s in solutions:
+    print s
 
