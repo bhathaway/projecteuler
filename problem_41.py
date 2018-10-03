@@ -1,17 +1,4 @@
-def is_prime(n):
-    if n < 2:
-        return False
-
-    d = 2
-    r = n / d
-    while r >= d:
-        if r * d == n:
-            return False
-        else:
-            d += 1
-            r = n / d
-
-    return True
+from prime import is_prime
 
 def pandigitalPrimes(string, s):
     if len(s) == 0:
@@ -34,6 +21,7 @@ for i in range(2, 10):
     digit_bin = set()
     for k in range(1, i+1):
         digit_bin.add(str(k))
-    print("pandigital primes (n = %d)" % i)
-    print pandigitalPrimes("", digit_bin)
-
+    print("Generating for n = {}".format(i))
+    primes = pandigitalPrimes("", digit_bin)
+    if len(primes) != 0:
+        print "Maximum: {}".format(max(primes))
