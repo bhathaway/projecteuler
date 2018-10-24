@@ -123,3 +123,13 @@ def totient(n):
             last_factor = p
     return upper_prod * n / lower_prod
 
+# Integer root function, returns largest approximation not greater than
+# the true root
+def isqrt(n):
+    x = n
+    y = (x + 1) // 2
+    while y < x:
+        x = y
+        y = (x + n // x) // 2
+    return x
+
