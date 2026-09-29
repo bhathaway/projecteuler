@@ -282,15 +282,15 @@ using UniqueSequences = std::map<RankedSum, MaxToUniqueSequenceCount>;
 // me to reimagine the mapping from ranked sums not just to a count, but to another map from
 // maximum values to counts, so that the inner loop missing nothing. I failed to prove that this
 // does not overcount, but it happens to not, a lucky accident.
-std::size_t
-ComputeSum(UniqueSequences& all_sequences, std::size_t target_sum) {
+UniqueSequenceCount
+ComputeSum(UniqueSequences& all_sequences, Sum target_sum) {
   // This is the seed that fills in the entire family of sequences.
   all_sequences[RankedSum(target_sum, 1)][target_sum] = 1;
-  const std::size_t max_sub_rank = target_sum - 1; // - 1 ensures we don't both with zeros
+  const Rank max_sub_rank = target_sum - 1; // - 1 ensures we don't both with zeros
 
-  for (std::size_t sub_rank = 1; sub_rank <= max_sub_rank; ++sub_rank) {
-    for (std::size_t first_element = target_sum - sub_rank; first_element > 0; --first_element) {
-      const std::size_t subsequence_sum = target_sum - first_element;
+  for (Rank sub_rank = 1; sub_rank <= max_sub_rank; ++sub_rank) {
+    for (MaxElement first_element = target_sum - sub_rank; first_element > 0; --first_element) {
+      const Sum subsequence_sum = target_sum - first_element;
       RankedSum subseq(subsequence_sum, sub_rank);
       RankedSum new_sequences(target_sum, sub_rank + 1);
       for (auto pair : all_sequences[subseq]) {
@@ -324,12 +324,12 @@ int
 main() {
   UniqueSequences all_sequences;
 
-  std::size_t value = 100;
-  for (std::size_t sum = 1; sum < value; ++sum) {
+  const Sum value = 100;
+  for (Sum sum = 1; sum < value; ++sum) {
     ComputeSum(all_sequences, sum);
   }
 
-  std::size_t answer = ComputeSum(all_sequences, value);
+  UniqueSequenceCount answer = ComputeSum(all_sequences, value);
   std::cout << "The answer is " << answer << std::endl;
 }
 
